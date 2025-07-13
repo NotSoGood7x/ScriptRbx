@@ -1,0 +1,670 @@
+local Rayfield = loadstring(game:HttpGet('https://sirius.menu/rayfield'))()
+
+local Players = game:GetService("Players")
+local remote = game:GetService("ReplicatedStorage"):WaitForChild("Modules"):WaitForChild("Shared"):WaitForChild("Warp"):WaitForChild("Index"):WaitForChild("Event"):WaitForChild("Reliable")
+local plr = Players.LocalPlayer
+
+local name = plr.Name
+local plot = nil
+
+for _, blot in ipairs(workspace:WaitForChild("Gameplay"):WaitForChild("Plots"):GetChildren()) do
+    local label = blot.PlotLogic.PlotNameSign.PlayerInfoSign.PlayerNameSign.MainFrame.NameLabel
+    if label.Text:find(name .. "'s") then
+        plot = blot
+        break
+    end
+end
+
+if not plot then error("No plot found, disabling") return end
+
+local coinHolder = workspace:WaitForChild("Gameplay"):WaitForChild("CoinHolder")
+local customers = workspace:WaitForChild("Gameplay"):WaitForChild("Customers")
+local containerHolder = plot:WaitForChild("PlotLogic"):WaitForChild("ContainerHolder")
+local itemCache = plot.PlotLogic.ItemCache
+
+local containerMap = {
+    ["JunkContainer"] = string.char(13) .. "JunkContainer",
+    ["ScratchedContainer"] = string.char(18) .. "ScratchedContainer",
+    ["SealedContainer"] = string.char(15) .. "SealedContainer",
+    ["MilitaryContainer"] = string.char(17) .. "MilitaryContainer",
+    ["MetalContainer"] = string.char(14) .. "MetalContainer",
+    ["FrozenContainer"] = string.char(15) .. "FrozenContainer",
+    ["LavaContainer"] = string.char(13) .. "LavaContainer",
+    ["CorruptedContainer"] = string.char(18) .. "CorruptedContainer",
+    ["StormedContainer"] = string.char(16) .. "StormedContainer",
+    ["LightningContainer"] = string.char(18) .. "LightningContainer",
+    ["InfernalContainer"] = string.char(17) .. "InfernalContainer",
+    ["MysticContainer"] = string.char(15) .. "MysticContainer",
+    ["GlitchedContainer"] = string.char(17) .. "GlitchedContainer",
+    ["AstralContainer"] = string.char(15) .. "AstralContainer",
+    ["DreamContainer"] = string.char(14) .. "DreamContainer",
+    ["CelestialContainer"] = string.char(18) .. "CelestialContainer",
+    ["FireContainer"] = string.char(13) .. "FireContainer",
+    ["GoldenContainer"] = string.char(15) .. "GoldenContainer",
+    ["DiamondContainer"] = string.char(16) .. "DiamondContainer",
+    ["EmeraldContainer"] = string.char(16) .. "EmeraldContainer",
+    ["RubyContainer"] = string.char(13) .. "RubyContainer",
+    ["SapphireContainer"] = string.char(17) .. "SapphireContainer",
+
+    -- ✅ New containers
+    ["SpaceContainer"] = string.char(15) .. "SpaceContainer",
+    ["DeepSpaceContainer"] = string.char(18) .. "DeepSpaceContainer"
+}
+
+local containerOptions = {
+    "JunkContainer",
+    "ScratchedContainer",
+    "SealedContainer",
+    "MilitaryContainer",
+    "MetalContainer",
+    "FrozenContainer",
+    "LavaContainer",
+    "CorruptedContainer",
+    "StormedContainer",
+    "LightningContainer",
+    "InfernalContainer",
+    "MysticContainer",
+    "GlitchedContainer",
+    "AstralContainer",
+    "DreamContainer",
+    "CelestialContainer",
+    "FireContainer",
+    "GoldenContainer",
+    "DiamondContainer",
+    "EmeraldContainer",
+    "RubyContainer",
+    "SapphireContainer",
+
+    -- ✅ New containers
+    "SpaceContainer",
+    "DeepSpaceContainer"
+}
+
+local flowerMap = {
+    ["BasicFlowerContainer"] = string.char(20) .. "BasicFlowerContainer",
+    ["GoodFlowerContainer"] = string.char(19) .. "GoodFlowerContainer"
+}
+
+local flowerOptions = {
+    "BasicFlowerContainer",
+    "GoodFlowerContainer"
+}
+
+local Window = Rayfield:CreateWindow({
+    Name = "▶ Container RNG ◀",
+    Icon = 0,
+    LoadingTitle = "Loading...",
+    LoadingSubtitle = "by Jammyz 🥵",
+    Theme = "DarkBlue",
+})
+
+local Tab = Window:CreateTab("Main")
+
+Tab:CreateSection("Main")
+
+Tab:CreateToggle({
+    Name = "Coin Collector",
+    CurrentValue = false,
+    Callback = function(Value)
+        if not coinHolder then
+            error("watafak no coin folder")
+            return
+        end
+        _G.coin = Value
+        while _G.coin do
+            for _, coin in ipairs(coinHolder:GetChildren()) do
+                remote:FireServer(buffer.fromstring("\6"), buffer.fromstring("\254\1\0\6".."0" .. coin.Name))
+            end
+            task.wait()
+        end
+    end,
+})
+
+local itemCollectDelay = 0 -- default delay for item collector
+
+Tab:CreateToggle({
+    Name = "Item Collector",
+    CurrentValue = false,
+    Callback = function(Value)
+        if not itemCache then
+            error("watafak no item folder")
+            return
+        end
+
+        _G.item = Value
+
+        local housePart = plot:WaitForChild("PlotDecor"):WaitForChild("House"):WaitForChild("Part")
+
+        while _G.item do
+            for _, item in ipairs(itemCache:GetChildren()) do
+                if item:IsA("Model") and item.PrimaryPart then
+                    local itemPos = item.PrimaryPart.Position
+                    local housePos = housePart.Position
+                    local houseSize = housePart.Size
+
+                    local inBounds =
+                        math.abs(itemPos.X - housePos.X) <= houseSize.X / 2 and
+                        math.abs(itemPos.Z - housePos.Z) <= houseSize.Z / 2 and
+                        itemPos.Y >= housePos.Y
+
+                    if not inBounds then
+                        remote:FireServer(buffer.fromstring("\v"), buffer.fromstring("\254\1\0\6)" .. item.Name))
+                    else 
+                        if delete then 
+                            item:Destroy()
+                        end
+                    end
+                end
+            end
+            task.wait(itemCollectDelay or 0)
+        end
+    end,
+})
+
+Tab:CreateInput({
+    Name = "Item Collect Delay",
+    CurrentValue = "0",
+    PlaceholderText = "Seconds (e.g., 0.5)",
+    RemoveTextAfterFocusLost = false,
+    Callback = function(Text)
+        local number = tonumber(Text)
+        if number then
+            itemCollectDelay = number
+        end
+    end,
+})
+
+Tab:CreateToggle({
+    Name = "Delete Plot Items",
+    CurrentValue = false,
+    Callback = function(Value)
+        print("It will get deleted when u enable item collector btw")
+        delete = Value
+    end,
+})
+
+local autoDropDelay = 1 -- default delay in seconds
+
+Tab:CreateToggle({
+    Name = "Auto Drop Items",
+    CurrentValue = false,
+    Callback = function(Value)
+        _G.drop = Value
+
+        if Value then
+            local housePart = plot:WaitForChild("PlotDecor"):WaitForChild("House"):WaitForChild("Part")
+            plr.Character.HumanoidRootPart.CFrame = housePart.CFrame + Vector3.new(0, 7, 0)
+
+            while _G.drop do
+                remote:FireServer(buffer.fromstring("\t"), buffer.fromstring("\254\0\0"))
+                task.wait(autoDropDelay)
+            end
+        end
+    end,
+})
+
+Tab:CreateSlider({
+    Name = "Auto Drop Delay (seconds)",
+    Range = {1, 10},
+    Increment = 1,
+    CurrentValue = 1,
+    Callback = function(Value)
+        autoDropDelay = Value
+    end,
+})
+
+local speed
+local speedV
+
+Tab:CreateToggle({
+    Name = "Customer Speed",
+    CurrentValue = false,
+    Callback = function(Value)
+        speed = Value
+
+        if speed and customers then
+            for _, customer in ipairs(customers:GetChildren()) do
+                customer:WaitForChild("Humanoid").WalkSpeed = Value
+            end
+        end
+    end,
+})
+
+Tab:CreateSlider({
+    Name = "Speed",
+    Range = {16, 250},
+    Increment = 1,
+    CurrentValue = 16,
+    Callback = function(Value)
+        speedV = Value
+
+        if speed and customers then
+            for _, customer in ipairs(customers:GetChildren()) do
+                customer:WaitForChild("Humanoid").WalkSpeed = Value
+            end
+        end
+    end,
+})
+
+customers.ChildAdded:Connect(function(customer)
+    if not speed or not speedV then return end
+    customer:WaitForChild("Humanoid").WalkSpeed = speedV
+end)
+
+Tab:CreateButton({
+    Name = "Toggle Notifications",
+    Callback = function()
+        local pask = plr.PlayerGui
+        for _, thing in ipairs(pask:GetChildren()) do
+            if thing:FindFirstChild("NotificationFrame") then
+                local frame = thing:FindFirstChild("NotificationFrame")
+                frame.Visible = not frame.Visible
+            end
+        end
+    end,
+})
+
+local Container = Window:CreateTab("Container")
+
+Container:CreateSection("Container")
+
+Container:CreateToggle({
+    Name = "Container Open",
+    CurrentValue = false,
+    Callback = function(Value)
+        if not containerHolder then
+            error("watafak no container folder")
+            return
+        end
+        _G.container = Value
+        while _G.container do
+            for _, container in ipairs(containerHolder:GetChildren()) do
+                remote:FireServer(buffer.fromstring("\28"), buffer.fromstring("\254\1\0\6." .. container.Name))
+            end
+            task.wait()
+        end
+    end,
+})
+
+local selectedContainer = "JunkContainer"
+
+Container:CreateDropdown({
+    Name = "Container",
+    Options = containerOptions,
+    CurrentOption = "JunkContainer",
+    MultipleOptions = false,
+    Callback = function(Option)
+        selectedContainer = typeof(Option) == "table" and Option[1] or Option
+    end,
+})
+
+local buyDelay
+
+Container:CreateToggle({
+    Name = "Auto Buy Container",
+    CurrentValue = false,
+    Callback = function(Value)
+        _G.buy = Value
+        while _G.buy do
+            local e = containerMap[selectedContainer]
+            if not e then
+                warn("Invalid container:", selectedContainer)
+                break
+            end
+
+            remote:FireServer(buffer.fromstring("\26"), buffer.fromstring("\254\1\0\6" .. e))
+            
+            task.wait(buyDelay or 0)
+        end
+    end,
+})
+
+Container:CreateInput({
+    Name = "Buy Delay",
+    CurrentValue = "0",
+    PlaceholderText = "seconds",
+    RemoveTextAfterFocusLost = false,
+    Callback = function(Text)
+        local number = tonumber(Text)
+        if number then
+            buyDelay = number
+        end
+    end,
+})
+
+local selectedFlower = "BasicFlowerContainer"
+
+Container:CreateDropdown({
+    Name = "Flower Container",
+    Options = flowerOptions,
+    CurrentOption = "BasicFlowerContainer",
+    MultipleOptions = false,
+    Callback = function(Option)
+        selectedFlower = typeof(Option) == "table" and Option[1] or Option
+    end,
+})
+
+local buyDelayFlower
+
+Container:CreateToggle({
+    Name = "Auto Buy Flower Container",
+    CurrentValue = false,
+    Callback = function(Value)
+        _G.buyflower = Value
+        while _G.buyflower do
+            local e = flowerMap[selectedFlower]
+            if not e then
+                warn("Invalid container:", selectedFlower)
+                break
+            end
+
+            remote:FireServer(buffer.fromstring("\26"), buffer.fromstring("\254\1\0\6" .. e))
+
+            task.wait(buyDelayFlower or 0)
+        end
+    end,
+})
+
+Container:CreateInput({
+    Name = "Buy Delay",
+    CurrentValue = "0",
+    PlaceholderText = "seconds",
+    RemoveTextAfterFocusLost = false,
+    Callback = function(Text)
+        local number = tonumber(Text)
+        if number then
+            buyDelayFlower = number
+        end
+    end,
+})
+
+local Upgrades = Window:CreateTab("Upgrades")
+
+Upgrades:CreateSection("Upgrades")
+
+Upgrades:CreateToggle({
+    Name = "Upgrade Inventory Size",
+    CurrentValue = false,
+    Callback = function(Value)
+        _G.upgradeinv = Value
+        while _G.upgradeinv do
+            remote:FireServer(buffer.fromstring("5"), buffer.fromstring("\254\1\0\6\17MaxInventoryItems"))
+
+            task.wait(0.5)
+        end
+    end,
+})
+
+Upgrades:CreateToggle({
+    Name = "Upgrade Max Flowers Placed",
+    CurrentValue = false,
+    Callback = function(Value)
+        _G.upgradeflowers = Value
+        while _G.upgradeflowers do
+            remote:FireServer(buffer.fromstring("5"), buffer.fromstring("\254\1\0\6\16MaxFlowersPlaced"))
+
+            task.wait(0.5)
+        end
+    end,
+})
+
+Upgrades:CreateToggle({
+    Name = "Upgrade Max Customers",
+    CurrentValue = false,
+    Callback = function(Value)
+        _G.upgradecustomers = Value
+        while _G.upgradecustomers do
+            remote:FireServer(buffer.fromstring("5"), buffer.fromstring("\254\1\0\6\fMaxCustomers"))
+
+            task.wait(0.5)
+        end
+    end,
+})
+
+Upgrades:CreateToggle({
+    Name = "Upgrade Max Containers",
+    CurrentValue = false,
+    Callback = function(Value)
+        _G.upgradecontainers = Value
+        while _G.upgradecontainers do
+            remote:FireServer(buffer.fromstring("5"), buffer.fromstring("\254\1\0\6\rMaxContainers"))
+
+            task.wait(0.5)
+        end
+    end,
+})
+
+Upgrades:CreateToggle({
+    Name = "Upgrade Max Plot Items",
+    CurrentValue = false,
+    Callback = function(Value)
+        _G.upgradepitems = Value
+        while _G.upgradepitems do
+            remote:FireServer(buffer.fromstring("5"), buffer.fromstring("\254\1\0\6\14MaxItemsOnPlot"))
+
+            task.wait(0.5)
+        end
+    end,
+})
+
+local Event = Window:CreateTab("Event")
+
+Event:CreateSection("Event")
+
+Event:CreateButton({
+    Name = "Buy Lavender [10M]",
+    Callback = function()
+        remote:FireServer(buffer.fromstring("\22"), buffer.fromstring("\254\1\0\6\bLavender"))
+    end,
+})
+
+Event:CreateButton({
+    Name = "Buy Lilly Pad [1B]",
+    Callback = function()
+        remote:FireServer(buffer.fromstring("\22"), buffer.fromstring("\254\1\0\6\bLillyPad"))
+    end,
+})
+
+Event:CreateButton({
+    Name = "Buy Cactus [250B]",
+    Callback = function()
+        remote:FireServer(buffer.fromstring("\22"), buffer.fromstring("\254\1\0\6\6Cactus"))
+    end,
+})
+
+Event:CreateButton({
+    Name = "Buy Palm Tree [1T]",
+    Callback = function()
+        remote:FireServer(buffer.fromstring("\22"), buffer.fromstring("\254\1\0\6\bPalmTree"))
+    end,
+})
+
+local Misc = Window:CreateTab("Misc")
+
+Misc:CreateSection("Misc")
+
+-- Fake Insane Luck Toggle
+local insaneLuckActive = false
+Misc:CreateToggle({
+    Name = "Fake Insane Luck (No Purchase)",
+    CurrentValue = false,
+    Callback = function(Value)
+        insaneLuckActive = Value
+        local boostsFolder = plr:FindFirstChild("Boosts") or plr:FindFirstChild("Stats") or plr
+        if boostsFolder then
+            local luck = boostsFolder:FindFirstChild("InsaneLuck")
+            if not luck then
+                luck = Instance.new("BoolValue")
+                luck.Name = "InsaneLuck"
+                luck.Value = Value
+                luck.Parent = boostsFolder
+            else
+                luck.Value = Value
+            end
+        end
+    end,
+})
+
+-- Fake Double Cash Toggle
+local doubleCashActive = false
+Misc:CreateToggle({
+    Name = "Fake x2 Customer Money (No Purchase)",
+    CurrentValue = false,
+    Callback = function(Value)
+        doubleCashActive = Value
+        local boostsFolder = plr:FindFirstChild("Boosts") or plr:FindFirstChild("Stats") or plr
+        if boostsFolder then
+            local cashBoost = boostsFolder:FindFirstChild("DoubleCash")
+            if not cashBoost then
+                cashBoost = Instance.new("BoolValue")
+                cashBoost.Name = "DoubleCash"
+                cashBoost.Value = Value
+                cashBoost.Parent = boostsFolder
+            else
+                cashBoost.Value = Value
+            end
+        end
+    end,
+})
+
+Misc:CreateToggle({
+    Name = "Fake HUGE Items (No Purchase)",
+    CurrentValue = false,
+    Callback = function(Value)
+        hugeItemsActive = Value
+        local boostsFolder = plr:FindFirstChild("Boosts") or plr:FindFirstChild("Stats") or plr
+        if boostsFolder then
+            local huge = boostsFolder:FindFirstChild("HugeItems")
+            if not huge then
+                huge = Instance.new("BoolValue")
+                huge.Name = "HugeItems"
+                huge.Value = Value
+                huge.Parent = boostsFolder
+            else
+                huge.Value = Value
+            end
+            print("Fake HUGE Items set to:", Value)
+        else
+            warn("No suitable boosts/stats folder found under the player.")
+        end
+    end,
+})
+
+local guaranteedPurchasesActive = false
+
+Misc:CreateToggle({
+    Name = "Fake Guaranteed Purchases (No Purchase)",
+    CurrentValue = false,
+    Callback = function(Value)
+        guaranteedPurchasesActive = Value
+        local boostsFolder = plr:FindFirstChild("Boosts") or plr:FindFirstChild("Stats") or plr
+        if boostsFolder then
+            local guarantee = boostsFolder:FindFirstChild("GuaranteedPurchases")
+            if not guarantee then
+                guarantee = Instance.new("BoolValue")
+                guarantee.Name = "GuaranteedPurchases"
+                guarantee.Value = Value
+                guarantee.Parent = boostsFolder
+            else
+                guarantee.Value = Value
+            end
+            print("✅ Fake Guaranteed Purchases set to:", Value)
+        else
+            warn("⚠️ No Boosts/Stats folder found in player.")
+        end
+    end,
+})
+
+Misc:CreateSlider({
+    Name = "Luck Multiplier (x)",
+    Range = {1, 100},
+    Increment = 1,
+    CurrentValue = 1,
+    Callback = function(Value)
+        customLuckMultiplier = Value
+        if flowerBoostActive then
+            local boostsFolder = plr:FindFirstChild("Boosts") or plr:FindFirstChild("Stats") or plr
+            if boostsFolder and boostsFolder:FindFirstChild("LuckMultiplier") then
+                boostsFolder.LuckMultiplier.Value = Value
+            end
+        end
+    end,
+})
+
+Misc:CreateSlider({
+    Name = "Size Multiplier (x)",
+    Range = {1, 100},
+    Increment = 1,
+    CurrentValue = 1,
+    Callback = function(Value)
+        customSizeMultiplier = Value
+        if flowerBoostActive then
+            local boostsFolder = plr:FindFirstChild("Boosts") or plr:FindFirstChild("Stats") or plr
+            if boostsFolder and boostsFolder:FindFirstChild("ItemSizeMultiplier") then
+                boostsFolder.ItemSizeMultiplier.Value = Value
+            end
+        end
+    end,
+})
+
+Misc:CreateButton({
+    Name = "FPS Boost",
+    Callback = function()
+        loadstring(game:HttpGet("https://raw.githubusercontent.com/CasperFlyModz/discord.gg-rips/main/FPSBooster.lua"))()
+        local e = workspace:FindFirstChild("MapDesign")
+        if e then e:Destroy() end
+    end,
+})
+
+Misc:CreateButton({
+    Name = "Allow Reset",
+    Callback = function()
+        plr.PlayerScripts:FindFirstChild("ResetOff").Enabled = false
+        game:GetService("StarterGui"):SetCore("ResetButtonCallback", true)
+    end,
+})
+
+Misc:CreateButton({
+    Name = "Free Container",
+    Callback = function()
+        remote:FireServer(buffer.fromstring("<"), buffer.fromstring("\254\0\0"))
+    end,
+})
+
+Misc:CreateSlider({
+    Name = "Walkspeed",
+    Range = {24, 500},
+    Increment = 1,
+    CurrentValue = 24,
+    Callback = function(Value)
+        plr.Character.Humanoid.WalkSpeed = Value
+    end,
+})
+
+Misc:CreateSlider({
+    Name = "Jumppower",
+    Range = {50, 500},
+    Increment = 1,
+    CurrentValue = 50,
+    Callback = function(Value)
+        plr.Character.Humanoid.JumpHeight = Value
+    end,
+})
+
+Misc:CreateSlider({
+    Name = "Hip height",
+    Range = {0, 10},
+    Increment = 1,
+    CurrentValue = 2,
+    Callback = function(Value)
+        plr.Character.Humanoid.HipHeight = Value
+    end,
+})
+
+Misc:CreateToggle({
+    Name = "Auto Rotate",
+    CurrentValue = true,
+    Callback = function(Value)
+        plr.Character.Humanoid.AutoRotate = Value
+    end,
+})
